@@ -1,4 +1,4 @@
-# Car Prompt Heatmap Studio
+# heatmap
 
 This repo now has two parts:
 
