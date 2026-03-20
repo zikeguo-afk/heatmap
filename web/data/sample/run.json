@@ -1,0 +1,28 @@
+{
+  "prompt": "monkey with hat walking",
+  "image": "image.png",
+  "width": 512,
+  "height": 512,
+  "tokens": [
+    {
+      "id": 0,
+      "text": "monkey",
+      "file": "heatmaps/t00_monkey.png"
+    },
+    {
+      "id": 1,
+      "text": "with",
+      "file": "heatmaps/t01_with.png"
+    },
+    {
+      "id": 2,
+      "text": "hat",
+      "file": "heatmaps/t02_hat.png"
+    },
+    {
+      "id": 3,
+      "text": "walking",
+      "file": "heatmaps/t03_walking.png"
+    }
+  ]
+}

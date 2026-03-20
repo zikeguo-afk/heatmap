@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Car Prompt Heatmap Studio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1420'/%3E%3Cpath d='M11 39c3-9 12-16 23-16h6c8 0 13 4 18 12l-2 8H8l3-4Z' fill='%23ffb84f'/%3E%3Ccircle cx='21' cy='44' r='6' fill='%2309111a'/%3E%3Ccircle cx='46' cy='44' r='6' fill='%2309111a'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero-copy">
+        <div class="kicker">Heuristic Prompt Attribution</div>
+        <h1>上传汽车图片后，按提示词实时生成部件热力图</h1>
+        <p class="subtitle">
+          这是对 DAAM 研究思路的前端模拟版: 不运行 Stable Diffusion，而是根据汽车设计语义和视角规则生成可交互的 token 热力图，并用时间步动画模仿生成过程。
+        </p>
+      </div>
+      <div class="hero-note">
+        <div class="meta-label">Current Mode</div>
+        <div class="meta-value">Local image + prompt simulation</div>
+        <div class="meta-tip">适合汽车造型分析、提词演示和概念验证，不是模型真实 cross-attention。</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel panel-input">
+        <div class="panel-header">
+          <h2>Input</h2>
+          <div class="legend">上传一张车图，再输入中文或英文提示词。</div>
+        </div>
+
+        <label class="upload-card" for="imageInput">
+          <input id="imageInput" type="file" accept="image/*" />
+          <span class="upload-title">选择汽车图片</span>
+          <span class="upload-tip" id="fileName">支持 JPG / PNG / WEBP，本地处理，不上传服务器。</span>
+        </label>
+
+        <div class="field">
+          <label for="promptInput">Prompt</label>
+          <textarea id="promptInput" rows="5" placeholder="例如: futuristic electric SUV with sharp headlights and large wheels"></textarea>
+        </div>
+
+        <div class="grid-two">
+          <div class="field">
+            <label for="viewSelect">Vehicle View</label>
+            <select id="viewSelect">
+              <option value="side-right">Side profile, facing right</option>
+              <option value="side-left">Side profile, facing left</option>
+              <option value="front">Front view</option>
+              <option value="rear">Rear view</option>
+              <option value="three-quarter">Three-quarter front</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="languageHint">Token Strategy</label>
+            <div id="languageHint" class="meta-mini">自动匹配中英文关键词，并保留未识别词作为弱热区。</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="generateBtn" class="action-primary">Generate Heatmaps</button>
+          <button id="demoBtn" class="action-secondary">Load Demo Car</button>
+          <button id="resetBtn" class="action-ghost">Reset</button>
+        </div>
+      </section>
+
+      <section class="panel panel-tokens">
+        <div class="panel-header">
+          <h2>Tokens</h2>
+          <div class="legend">点击 token 叠加热力图。未识别部件会回退到车身中心区域。</div>
+        </div>
+        <div id="tokenList" class="token-list"></div>
+
+        <div class="controls">
+          <div class="control">
+            <label for="threshold">Threshold</label>
+            <input id="threshold" type="range" min="0" max="1" step="0.01" value="0.26" />
+            <span id="thresholdValue">0.26</span>
+          </div>
+          <div class="control">
+            <label for="opacity">Opacity</label>
+            <input id="opacity" type="range" min="0" max="1" step="0.01" value="0.78" />
+            <span id="opacityValue">0.78</span>
+          </div>
+          <div class="control">
+            <label for="stepSlider">Time Step</label>
+            <input id="stepSlider" type="range" min="1" max="12" step="1" value="7" />
+            <span id="stepValue">7 / 12</span>
+          </div>
+          <div class="control control-row">
+            <label for="overlayToggle">Overlay</label>
+            <input id="overlayToggle" type="checkbox" checked />
+            <button id="playBtn" class="mini-button">Play</button>
+          </div>
+        </div>
+
+        <div class="status-box">
+          <div class="meta-label">Parse Summary</div>
+          <div id="summaryText" class="meta-value">等待图片和提示词。</div>
+        </div>
+      </section>
+
+      <section class="viewer">
+        <div class="viewer-top">
+          <div>
+            <div class="meta-label">Selected Token</div>
+            <div id="selectedTokenLabel" class="viewer-token">None</div>
+          </div>
+          <div>
+            <div class="meta-label">Prompt</div>
+            <div id="promptText" class="viewer-prompt">未输入</div>
+          </div>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="viewer"></canvas>
+          <div class="hint" id="hint">上传汽车图片后点击 Generate Heatmaps，再选择一个 token。</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
